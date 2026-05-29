@@ -10,6 +10,14 @@ app.post('/api/generate', async (req, res) => {
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   try {
+    const body = {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: req.body.messages
+    };
+
+    console.log('Sending to Anthropic:', JSON.stringify(body).substring(0, 200));
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -17,21 +25,14 @@ app.post('/api/generate', async (req, res) => {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 1024,
-        messages: req.body.messages
-      })
+      body: JSON.stringify(body)
     });
 
     const text = await response.text();
     console.log('Anthropic status:', response.status);
-    console.log('Anthropic response:', text.substring(0, 300));
+    console.log('Anthropic response:', text.substring(0, 400));
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: text });
-    }
-
+    if (!response.ok) return res.status(response.status).json({ error: text });
     res.json(JSON.parse(text));
   } catch (e) {
     console.error('Error:', e.message);
@@ -39,7 +40,6 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, key: process.env.ANTHROPIC_API_KEY ? 'set' : 'missing' });
 });
