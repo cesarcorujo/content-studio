@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Studio — Liminal Labs</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;--surface:#111113;--surface2:#1a1a1e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#f4f4f5;--muted:#71717a;--radius:12px;
+  --veil:#c4b5fd;--veil-bg:#0d0a1a;--veil-dim:rgba(196,181,253,0.1);
+  --liminal:#67e8f9;--liminal-bg:#010f12;--liminal-dim:rgba(103,232,249,0.08);
+  --tavlo:#86efac;--tavlo-bg:#051209;--tavlo-dim:rgba(134,239,172,0.08);
+  --asteron:#fbbf24;--asteron-bg:#110d01;--asteron-dim:rgba(251,191,36,0.08);
+  --brand-c:#c4b5fd;--brand-bg:#0d0a1a;--brand-dim:rgba(196,181,253,0.1);
+}
+*{scrollbar-width:thin;scrollbar-color:var(--surface2) transparent}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+header{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo{font-family:'DM Serif Display',serif;font-size:18px;letter-spacing:-.02em}
+.logo em{color:var(--muted);font-style:italic}
+.badge{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:20px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);letter-spacing:.06em}
+main{display:grid;grid-template-columns:230px 1fr 370px;height:calc(100vh - 53px);overflow:hidden}
+
+/* SIDEBAR */
+aside{border-right:1px solid var(--border);padding:18px 12px;display:flex;flex-direction:column;gap:5px;overflow-y:auto}
+.al{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;padding:0 8px;margin:10px 0 3px}
+.al:first-child{margin-top:0}
+.bb{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;border:1px solid transparent;background:transparent;cursor:pointer;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:500;transition:all .14s;text-align:left;width:100%}
+.bb:hover{background:var(--surface);color:var(--text)}
+.bb.active{background:var(--surface2);color:var(--text);border-color:var(--brand-c)}
+.bd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.bm{font-size:10px;color:var(--muted);font-weight:400;margin-top:1px}
+
+/* CENTER */
+.center{overflow-y:auto;padding:24px 22px;display:flex;flex-direction:column;gap:18px;border-right:1px solid var(--border)}
+.bt{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-.02em;line-height:1.1}
+.bs{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ctrl{display:flex;flex-direction:column;gap:4px}
+.cl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+select,textarea,input[type=text]{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:7px;font-family:'Syne',sans-serif;font-size:12px;padding:8px 10px;outline:none;width:100%;transition:border-color .14s;appearance:none}
+select:focus,textarea:focus,input:focus{border-color:var(--brand-c)}
+textarea{resize:none;height:64px;line-height:1.5;grid-column:1/-1}
+hr{height:1px;background:var(--border);border:none}
+.tabs{display:flex;gap:2px;background:var(--surface);padding:3px;border-radius:9px;border:1px solid var(--border)}
+.tab{flex:1;padding:6px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;border-radius:7px;cursor:pointer;transition:all .14s}
+.tab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.gen-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:9px;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .16s;background:var(--brand-c);color:#000;width:100%}
+.gen-btn:hover{opacity:.84;transform:translateY(-1px)}
+.gen-btn:active{transform:translateY(0)}
+.gen-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.spin{width:13px;height:13px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* OUTPUT CARDS */
+.out-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.out-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--brand-c);opacity:.5}
+.oh{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.on{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.nd{width:5px;height:5px;border-radius:50%;background:var(--brand-c)}
+.oa{display:flex;gap:5px;flex-wrap:wrap}
+.ob{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 9px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;transition:all .14s;letter-spacing:.04em;white-space:nowrap}
+.ob:hover{color:var(--text);border-color:var(--border2)}
+.ob.hi{color:var(--brand-c);border-color:var(--brand-c)}
+.ob.canva-btn{background:rgba(122,57,255,.12);border-color:rgba(122,57,255,.3);color:#a78bfa}
+.ob.canva-btn:hover{background:rgba(122,57,255,.2);border-color:#a78bfa;color:#c4b5fd}
+.ob.canva-btn:disabled{opacity:.4;cursor:not-allowed}
+.ct{font-size:12px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.tags-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px}
+.htag{font-family:'DM Mono',monospace;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--brand-dim);color:var(--brand-c);border:1px solid rgba(255,255,255,.06);opacity:.8}
+.idea-list{display:flex;flex-direction:column;gap:7px}
+.ii{border-left:2px solid var(--brand-c);padding:8px 11px;font-size:11px;line-height:1.6;background:var(--surface2);border-radius:0 8px 8px 0}
+.in{font-family:'DM Mono',monospace;font-size:9px;color:var(--brand-c);margin-bottom:2px}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.ei{font-size:32px;opacity:.18;margin-bottom:10px}
+.et{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);opacity:.4;margin-bottom:5px}
+.es{font-size:11px}
+
+/* STATUS TOAST */
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:9px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);background:var(--surface2);border:1px solid var(--border2);display:none;z-index:100;letter-spacing:.04em}
+.toast.show{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* VISUAL PANEL */
+.vp{overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:14px}
+.vph{display:flex;align-items:center;justify-content:space-between}
+.vpt{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.fmt{display:flex;gap:3px}
+.fb{padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;transition:all .14s}
+.fb.active{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.cw{display:flex;justify-content:center}
+.cw canvas{border-radius:9px;max-width:100%;display:block;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.se{display:none;flex-direction:column;gap:8px}
+.er{display:flex;flex-direction:column;gap:3px}
+.el{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.ei2{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:7px;font-family:'Syne',sans-serif;font-size:11px;padding:7px 9px;outline:none;width:100%;transition:border-color .14s}
+.ei2:focus{border-color:var(--brand-c)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cn{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.nb{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;transition:all .14s}
+.nb:hover{color:var(--text)}
+.nb:disabled{opacity:.3;cursor:not-allowed}
+.si{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)}
+.dl{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .14s;width:100%}
+.dl:hover{border-color:var(--brand-c);color:var(--brand-c)}
+.dl:disabled{opacity:.3;cursor:not-allowed}
+.canva-open{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border-radius:8px;border:1px solid rgba(122,57,255,.35);background:rgba(122,57,255,.1);color:#c4b5fd;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .14s;width:100%;text-decoration:none}
+.canva-open:hover{background:rgba(122,57,255,.2);border-color:#a78bfa}
+.vp-empty{text-align:center;padding:36px 14px;color:var(--muted);font-size:11px;line-height:1.7}
+
+/* canva status */
+.canva-status{font-family:'DM Mono',monospace;font-size:10px;text-align:center;padding:8px;border-radius:7px;background:rgba(122,57,255,.08);border:1px solid rgba(122,57,255,.2);color:#a78bfa;display:none}
+.canva-status.show{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Content Studio <em>by Liminal Labs</em></div>
+  <div class="badge">v3 · copy + canvas + canva</div>
+</header>
+
+<main>
+<aside>
+  <div class="al">Marcas</div>
+  <button class="bb active" data-brand="veil"><div class="bd" style="background:var(--veil)"></div><div>VEIL<div class="bm">Astrología</div></div></button>
+  <button class="bb" data-brand="liminal"><div class="bd" style="background:var(--liminal)"></div><div>LIMINAL<div class="bm">Sonido inmersivo</div></div></button>
+  <button class="bb" data-brand="tavlo"><div class="bd" style="background:var(--tavlo)"></div><div>TAVLO<div class="bm">Gestión gastro</div></div></button>
+  <button class="bb" data-brand="asteron"><div class="bd" style="background:var(--asteron)"></div><div>ASTERON AI<div class="bm">IA para pymes</div></div></button>
+  <div class="al" style="margin-top:18px">Flujo</div>
+  <div style="padding:0 8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8">
+    1. Generá copy<br>2. → Preview visual<br>3. → Abrí en Canva<br>4. Agregá foto y publicá
+  </div>
+</aside>
+
+<div class="center">
+  <div>
+    <div class="bt" id="brandName">VEIL</div>
+    <div class="bs" id="brandDesc">Astrología personalizada e introspección psicológica.</div>
+  </div>
+  <hr>
+  <div class="controls">
+    <div class="ctrl"><label class="cl">Red social</label>
+      <select id="network"><option value="instagram">Instagram</option><option value="linkedin">LinkedIn</option><option value="facebook">Facebook</option></select>
+    </div>
+    <div class="ctrl"><label class="cl">Tono</label>
+      <select id="tone"><option value="natural">Natural de la marca</option><option value="inspiracional">Inspiracional</option><option value="educativo">Educativo</option><option value="directo">Directo / CTA</option><option value="storytelling">Storytelling</option></select>
+    </div>
+    <textarea id="topic" placeholder="Tema o contexto opcional: luna nueva, lanzamiento de feature, tip semanal..."></textarea>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="setTab(this,'caption')">Caption</button>
+    <button class="tab" onclick="setTab(this,'ideas')">5 Ideas</button>
+    <button class="tab" onclick="setTab(this,'carousel')">Carrusel</button>
+    <button class="tab" onclick="setTab(this,'hashtags')">Hashtags</button>
+  </div>
+  <button class="gen-btn" id="genBtn" onclick="generate()">
+    <div class="spin" id="spinner"></div>
+    <span id="btnTxt">Generar contenido</span>
+  </button>
+  <div id="output">
+    <div class="empty"><div class="ei">✦</div><div class="et">Listo para generar</div><div class="es">Elegí marca, configurá y presioná generar.</div></div>
+  </div>
+</div>
+
+<div class="vp">
+  <div class="vph">
+    <div class="vpt">Post visual</div>
+    <div class="fmt">
+      <button class="fb active" onclick="setFmt('square',this)">1:1</button>
+      <button class="fb" onclick="setFmt('story',this)">9:16</button>
+    </div>
+  </div>
+
+  <div class="se" id="slideEditor">
+    <div class="er"><label class="el">Texto principal</label><input class="ei2" id="editMain" oninput="renderCanvas()" placeholder="Título o frase principal"></div>
+    <div class="er"><label class="el">Subtexto</label><input class="ei2" id="editSub" oninput="renderCanvas()" placeholder="Descripción o CTA"></div>
+    <div class="sg">
+      <div class="er"><label class="el">Estilo</label>
+        <select class="ei2" id="styleSelect" onchange="renderCanvas()"><option value="dark">Dark</option><option value="light">Light</option><option value="gradient">Gradient</option><option value="minimal">Minimal</option></select>
+      </div>
+      <div class="er"><label class="el">Layout</label>
+        <select class="ei2" id="layoutSelect" onchange="renderCanvas()"><option value="centered">Centrado</option><option value="left">Izquierda</option><option value="bottom">Abajo</option></select>
+      </div>
+    </div>
+    <div class="cn" id="carouselNav" style="display:none">
+      <button class="nb" id="prevS" onclick="changeSlide(-1)">← Prev</button>
+      <span class="si" id="slideInd">1 / 1</span>
+      <button class="nb" id="nextS" onclick="changeSlide(1)">Next →</button>
+    </div>
+  </div>
+
+  <div class="cw" id="canvasWrap">
+    <div class="vp-empty">⬛<br><br>Generá contenido para ver<br>el post visual acá.</div>
+  </div>
+
+  <button class="dl" id="dlBtn" onclick="downloadPost()" style="display:none">↓ Descargar PNG</button>
+
+  <div class="canva-status" id="canvaStatus"></div>
+
+  <button class="canva-open" id="canvaBtn" onclick="openInCanva()" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.8c.993 0 1.8.807 1.8 1.8S12.993 8.4 12 8.4 10.2 7.593 10.2 6.6 11.007 4.8 12 4.8zm3.6 10.8c0 .497-.403.9-.9.9H9.3a.9.9 0 0 1-.9-.9v-.6c0-.497.403-.9.9-.9h.6V10.8H9.3a.9.9 0 0 1-.9-.9v-.6c0-.497.403-.9.9-.9h2.4c.497 0 .9.403.9.9v4.5h.6c.497 0 .9.403.9.9v.6z"/></svg>
+    Abrir en Canva
+  </button>
+</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const brands={
+  veil:{name:'VEIL',color:'#c4b5fd',bg:'#0d0a1a',dim:'rgba(196,181,253,0.1)',desc:'Astrología personalizada e introspección psicológica.',
+    persona:`VEIL es una app de astrología e introspección psicológica de Liminal Labs. Tono: místico, profundo, poético, evocador. Lenguaje español rioplatense sofisticado. Audiencia: autoconocimiento, espiritualidad moderna. URL: veil-decision-decoder.lovable.app`},
+  liminal:{name:'LIMINAL',color:'#67e8f9',bg:'#010f12',dim:'rgba(103,232,249,0.08)',desc:'Arquitectura sonora inmersiva para el reset mental.',
+    persona:`LIMINAL es una app de arquitectura sonora inmersiva. Frecuencias binaurales. Sin música, sin voz. Tono: minimalista, técnico-poético, sereno. Slogan: "Clarity. Engineered." Audiencia: profesionales con estrés, biohackers. URL: liminal-app.com`},
+  tavlo:{name:'TAVLO',color:'#86efac',bg:'#051209',dim:'rgba(134,239,172,0.08)',desc:'Sistema de gestión e inventario para restaurantes.',
+    persona:`TAVLO es una app de gestión gastronómica: inventario, stock y operaciones. Tono: práctico, directo, profesional pero cercano. Pain points: desperdicio, falta de control. Audiencia: dueños de restaurantes, bares, cafeterías. URL: tavlo-app.com`},
+  asteron:{name:'ASTERON AI',color:'#fbbf24',bg:'#110d01',dim:'rgba(251,191,36,0.08)',desc:'Soluciones IA premium para pymes, clínicas e inmobiliarias.',
+    persona:`ASTERON AI ofrece soluciones IA premium para pymes. Automatización, asistentes WhatsApp, atención 24/7. Tono: ambicioso, confiable, orientado a ROI. URL: asteron-ai.onrender.com`}
+};
+
+let cur='veil',tab='caption',fmt='square',slides=[],curSlide=0,caption='',hashtags=[];
+
+function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur)}
+
+function setBrand(b){
+  cur=b;const br=brands[b];
+  document.getElementById('brandName').textContent=br.name;
+  document.getElementById('brandDesc').textContent=br.desc;
+  document.querySelectorAll('.bb').forEach(btn=>btn.classList.toggle('active',btn.dataset.brand===b));
+  document.documentElement.style.setProperty('--brand-c',br.color);
+  document.documentElement.style.setProperty('--brand-dim',br.dim);
+  document.getElementById('genBtn').style.background=br.color;
+  reset();
+}
+document.querySelectorAll('.bb').forEach(btn=>btn.addEventListener('click',()=>setBrand(btn.dataset.brand)));
+
+function setTab(el,t){tab=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
+function setFmt(f,el){fmt=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));el.classList.add('active');if(caption||slides.length)renderCanvas()}
+
+function reset(){
+  document.getElementById('output').innerHTML=`<div class="empty"><div class="ei">✦</div><div class="et">Listo para generar</div><div class="es">Elegí las opciones y presioná generar.</div></div>`;
+  document.getElementById('canvasWrap').innerHTML=`<div class="vp-empty">⬛<br><br>Generá contenido para ver<br>el post visual acá.</div>`;
+  document.getElementById('dlBtn').style.display='none';
+  document.getElementById('canvaBtn').style.display='none';
+  document.getElementById('slideEditor').style.display='none';
+  document.getElementById('canvaStatus').classList.remove('show');
+  slides=[];curSlide=0;caption='';hashtags=[];
+}
+
+async function generate(){
+  const btn=document.getElementById('genBtn'),sp=document.getElementById('spinner'),bt=document.getElementById('btnTxt');
+  const br=brands[cur],net=document.getElementById('network').value,tone=document.getElementById('tone').value,topic=document.getElementById('topic').value.trim();
+  const tones={natural:'Tono natural de la marca.',inspiracional:'Inspiracional y motivador.',educativo:'Educativo con valor real.',directo:'Directo con CTA fuerte.',storytelling:'Storytelling relatable.'};
+  let prompt='';
+  if(tab==='caption') prompt=`${br.persona}\n\nGenerá UN caption completo para ${net}. ${tones[tone]} ${topic?'Tema: '+topic:'Elegí tema relevante.'}\nIncluí 12 hashtags relevantes al final separados por espacio.\nSolo el contenido listo para usar.`;
+  else if(tab==='ideas') prompt=`${br.persona}\n\nGenerá exactamente 5 ideas de posts para ${net}. ${tones[tone]} ${topic?'Tema base: '+topic:''}\nPor cada idea:\nTÍTULO: [máx 8 palabras]\nDESCRIPCIÓN: [2-3 frases]\n---`;
+  else if(tab==='carousel') prompt=`${br.persona}\n\nCreá un carrusel de 5 slides para ${net}. ${tones[tone]} ${topic?'Tema: '+topic:'Elegí tema relevante.'}\nFormato estricto:\nSLIDE [N]:\nTÍTULO: [frase impactante máx 8 palabras]\nSUBTEXTO: [1-2 frases de apoyo]\n---\nAl final: HASHTAGS: [12 hashtags]\nSolo el contenido.`;
+  else prompt=`${br.persona}\n\nGenerá 3 grupos de hashtags para ${net}:\nGRUPO 1 MASIVOS: [6 hashtags]\nGRUPO 2 NICHO: [8 hashtags]\nGRUPO 3 MARCA ${br.name}: [5 hashtags]\nOrganizados y listos para copiar.`;
+
+  btn.disabled=true;sp.style.display='block';bt.textContent='Generando...';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'';
+    renderOutput(text);
+  }catch(e){document.getElementById('output').innerHTML=`<div class="empty"><div class="ei">⚠</div><div class="et">Error</div><div class="es">${e.message}</div></div>`}
+  finally{btn.disabled=false;sp.style.display='none';bt.textContent='Generar contenido'}
+}
+
+function renderOutput(text){
+  const br=brands[cur],out=document.getElementById('output');
+  hashtags=[...new Set(text.match(/#\w+/g)||[])];
+
+  if(tab==='caption'){
+    caption=text.replace(/(#\w+\s*)+/g,'').trim();
+    out.innerHTML=`<div class="out-card">
+      <div class="oh"><div class="on"><div class="nd"></div>${br.name}</div>
+      <div class="oa">
+        <button class="ob" onclick="cp(this,\`${esc(caption)}\`)">Copiar</button>
+        <button class="ob hi" onclick="toVisual()">→ Visual</button>
+      </div></div>
+      <div class="ct">${caption}</div>
+      ${hashtags.length?`<div class="tags-row">${hashtags.slice(0,15).map(t=>`<span class="htag">${t}</span>`).join('')}</div>`:''}
+    </div>`;
+    toVisual();
+
+  }else if(tab==='ideas'){
+    const parts=text.split('---').filter(s=>s.trim());
+    out.innerHTML=`<div class="idea-list">${parts.map((p,i)=>{
+      const titulo=(p.match(/TÍTULO:\s*(.+)/)||[])[1]?.trim()||`Idea ${i+1}`;
+      const desc=(p.match(/DESCRIPCIÓN:\s*([\s\S]+?)(?=---|$)/)||[])[1]?.trim()||p.trim();
+      return `<div class="out-card" style="padding:12px 14px">
+        <div class="in">IDEA ${String(i+1).padStart(2,'0')}</div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:3px">${titulo}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px">${desc}</div>
+        <div class="oa">
+          <button class="ob hi" onclick="ideaVisual(\`${esc(titulo)}\`,\`${esc(desc.substring(0,80))}\`)">→ Visual</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+
+  }else if(tab==='carousel'){
+    const blocks=text.split('---').filter(s=>s.trim()&&/SLIDE/i.test(s));
+    slides=blocks.map((b,i)=>({
+      titulo:(b.match(/TÍTULO:\s*(.+)/)||[])[1]?.trim()||`Slide ${i+1}`,
+      sub:(b.match(/SUBTEXTO:\s*([\s\S]+?)(?=---|HASHTAGS|$)/)||[])[1]?.trim()||''
+    })).filter(s=>s.titulo);
+    if(!slides.length)slides=[{titulo:'Slide 1',sub:text.substring(0,100)}];
+    curSlide=0;
+    out.innerHTML=`<div class="out-card">
+      <div class="oh"><div class="on"><div class="nd"></div>Carrusel · ${slides.length} slides</div></div>
+      <div class="idea-list">${slides.map((s,i)=>`<div style="border-left:2px solid var(--brand-c);padding:8px 10px;background:var(--surface2);border-radius:0 8px 8px 0;cursor:pointer;margin-bottom:3px" onclick="jumpSlide(${i})">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--brand-c);margin-bottom:2px">SLIDE ${i+1}</div>
+        <div style="font-size:11px;font-weight:600">${s.titulo}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${s.sub.substring(0,55)}${s.sub.length>55?'...':''}</div>
+      </div>`).join('')}</div>
+    </div>`;
+    renderCarousel();
+
+  }else{
+    out.innerHTML=`<div class="out-card">
+      <div class="oh"><div class="on"><div class="nd"></div>Hashtags</div><button class="ob" onclick="cp(this,\`${esc(text)}\`)">Copiar todo</button></div>
+      <div class="ct" style="font-family:'DM Mono',monospace;font-size:10px;line-height:2">${text}</div>
+    </div>`;
+  }
+}
+
+function esc(s){return(s||'').replace(/`/g,'\\`').replace(/\$/g,'\\$')}
+
+function toVisual(){
+  const lines=caption.split('\n').filter(l=>l.trim());
+  document.getElementById('editMain').value=lines[0]?.substring(0,60)||'';
+  document.getElementById('editSub').value=lines.slice(1).join(' ').substring(0,80)||'';
+  document.getElementById('slideEditor').style.display='flex';
+  document.getElementById('carouselNav').style.display='none';
+  slides=[];renderCanvas();
+}
+
+function ideaVisual(t,d){
+  document.getElementById('editMain').value=t;
+  document.getElementById('editSub').value=d;
+  document.getElementById('slideEditor').style.display='flex';
+  document.getElementById('carouselNav').style.display='none';
+  slides=[];renderCanvas();
+}
+
+function renderCarousel(){
+  document.getElementById('slideEditor').style.display='flex';
+  document.getElementById('carouselNav').style.display='flex';
+  document.getElementById('slideInd').textContent=`${curSlide+1} / ${slides.length}`;
+  document.getElementById('prevS').disabled=curSlide===0;
+  document.getElementById('nextS').disabled=curSlide===slides.length-1;
+  const s=slides[curSlide];
+  document.getElementById('editMain').value=s.titulo;
+  document.getElementById('editSub').value=s.sub;
+  renderCanvas();
+}
+function changeSlide(d){curSlide=Math.max(0,Math.min(slides.length-1,curSlide+d));renderCarousel()}
+function jumpSlide(i){curSlide=i;renderCarousel()}
+
+function renderCanvas(){
+  const br=brands[cur];
+  const main=document.getElementById('editMain').value||br.name;
+  const sub=document.getElementById('editSub').value||'';
+  const sty=document.getElementById('styleSelect').value;
+  const lay=document.getElementById('layoutSelect').value;
+  const isStory=fmt==='story';
+  const W=isStory?320:320,H=isStory?568:320;
+
+  const c=document.createElement('canvas');
+  c.width=W*2;c.height=H*2;c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.scale(2,2);
+
+  if(sty==='dark'){
+    ctx.fillStyle=br.bg;ctx.fillRect(0,0,W,H);
+    for(let i=0;i<60;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.025})`;ctx.beginPath();ctx.arc(Math.random()*W,Math.random()*H,Math.random()*1.2,0,Math.PI*2);ctx.fill()}
+    const g=ctx.createRadialGradient(W/2,H*.3,0,W/2,H*.3,W*.55);g.addColorStop(0,br.dim);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  }else if(sty==='light'){
+    ctx.fillStyle='#f9f9f9';ctx.fillRect(0,0,W,H);
+    const g=ctx.createRadialGradient(W/2,H*.15,0,W/2,H*.15,W*.65);g.addColorStop(0,br.color+'1a');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  }else if(sty==='gradient'){
+    const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,br.bg);g.addColorStop(1,'#08080d');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.globalAlpha=.12;const g2=ctx.createLinearGradient(0,H,W,0);g2.addColorStop(0,'transparent');g2.addColorStop(.5,br.color);g2.addColorStop(1,'transparent');ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);ctx.restore();
+  }else{
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=br.color+'22';ctx.lineWidth=.5;
+    for(let y=0;y<H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  }
+
+  ctx.fillStyle=br.color;ctx.fillRect(0,0,W,3);
+  if(lay==='left'){ctx.fillStyle=br.color;ctx.fillRect(0,0,2,H)}
+
+  const dark=sty==='dark'||sty==='gradient';
+  const tc=dark?'#fff':sty==='minimal'?'#111':'#fff';
+  const mc=dark?'rgba(255,255,255,.48)':sty==='minimal'?'#666':'rgba(0,0,0,.55)';
+
+  const cx=lay==='left'?22:W/2;
+  const align=lay==='left'?'left':'center';
+  ctx.textAlign=align;
+
+  let ty=lay==='bottom'?H*.68:H*.42;
+  if(isStory) ty=lay==='bottom'?H*.72:H*.44;
+
+  if(lay==='bottom'){ctx.fillStyle=br.color;ctx.fillRect(lay==='left'?22:W/2-24,ty-22,48,1.5)}
+
+  ctx.font=`500 8px 'DM Mono',monospace`;ctx.fillStyle=br.color;
+  ctx.fillText(brands[cur].name.toUpperCase(),cx,ty-12);
+
+  const fs=main.length<28?18:main.length<45?14:11;
+  ctx.font=`700 ${fs}px 'Syne',sans-serif`;ctx.fillStyle=tc;
+  const mw=lay==='left'?W-38:W-28;
+  const lh=fs*1.28;
+  const lines=wrapText(ctx,main,mw);
+  lines.forEach((l,i)=>ctx.fillText(l,cx,ty+4+i*lh));
+
+  if(sub){
+    const sy=ty+8+lines.length*lh;
+    ctx.font=`400 10px 'Syne',sans-serif`;ctx.fillStyle=mc;
+    const sl=wrapText(ctx,sub,mw-10);
+    sl.slice(0,3).forEach((l,i)=>ctx.fillText(l,cx,sy+i*14));
+  }
+
+  if(slides.length>1){ctx.font=`400 8px 'DM Mono',monospace`;ctx.fillStyle=br.color;ctx.textAlign='right';ctx.fillText(`${curSlide+1}/${slides.length}`,W-12,H-10);ctx.textAlign=align}
+
+  ctx.font=`400 7px 'DM Mono',monospace`;ctx.fillStyle=dark?'rgba(255,255,255,.15)':sty==='minimal'?'#bbb':'rgba(0,0,0,.2)';ctx.textAlign='center';
+  ctx.fillText(br.name.toLowerCase().replace(' ','')+'.app',W/2,H-8);
+
+  const wrap=document.getElementById('canvasWrap');wrap.innerHTML='';wrap.appendChild(c);
+  document.getElementById('dlBtn').style.display='flex';
+  document.getElementById('canvaBtn').style.display='flex';
+  document.getElementById('canvaStatus').classList.remove('show');
+}
+
+function wrapText(ctx,text,maxW){
+  const words=text.split(' ');const lines=[];let line='';
+  for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w}else line=t}
+  if(line)lines.push(line);return lines;
+}
+
+function downloadPost(){
+  const c=document.querySelector('#canvasWrap canvas');if(!c)return;
+  const br=brands[cur];const a=document.createElement('a');
+  a.download=`${br.name.toLowerCase().replace(' ','-')}-${fmt}-${Date.now()}.png`;
+  a.href=c.toDataURL('image/png',1.0);a.click();
+  toast('PNG descargado ✓');
+}
+
+async function openInCanva(){
+  const c=document.querySelector('#canvasWrap canvas');if(!c)return;
+  const btn=document.getElementById('canvaBtn');
+  const status=document.getElementById('canvaStatus');
+  const br=brands[cur];
+  const main=document.getElementById('editMain').value||br.name;
+  const sub=document.getElementById('editSub').value||'';
+
+  btn.disabled=true;btn.textContent='Abriendo en Canva...';
+  status.textContent='Preparando el diseño...';status.classList.add('show');
+
+  // Export canvas as blob → base64 data URL
+  // We create a Canva doc with the copy content via the Anthropic API
+  // which has Canva MCP connected — we trigger via sendPrompt
+  const designType=fmt==='story'?'your_story':'instagram_post';
+  const prompt=`Creá un diseño en Canva de tipo ${designType} para la marca ${br.name}. Texto principal: "${main}". Subtexto: "${sub}". Estilo: oscuro con acento de color ${br.color}. Marca: ${br.name}.`;
+
+  status.textContent='Enviando a Claude para crear en Canva...';
+  setTimeout(()=>{
+    btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.8c.993 0 1.8.807 1.8 1.8S12.993 8.4 12 8.4 10.2 7.593 10.2 6.6 11.007 4.8 12 4.8zm3.6 10.8c0 .497-.403.9-.9.9H9.3a.9.9 0 0 1-.9-.9v-.6c0-.497.403-.9.9-.9h.6V10.8H9.3a.9.9 0 0 1-.9-.9v-.6c0-.497.403-.9.9-.9h2.4c.497 0 .9.403.9.9v4.5h.6c.497 0 .9.403.9.9v.6z"/></svg> Abrir en Canva';
+    status.classList.remove('show');
+    window.__canvaPrompt=prompt;
+    if(window.sendPrompt) sendPrompt(prompt);
+  },500);
+}
+
+function cp(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{btn.textContent='✓ Copiado';btn.classList.add('hi');setTimeout(()=>{btn.textContent='Copiar';btn.classList.remove('hi')},2000)});
+}
+
+setBrand('veil');
+</script>
+</body>
+</html>
