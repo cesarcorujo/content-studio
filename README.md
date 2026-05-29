@@ -1,10 +1,10 @@
 # Content Studio — Liminal Labs
 
-Generador de contenido IA para redes sociales. Creado para gestionar las 4 marcas de Liminal Labs con un solo flujo.
+Generador de contenido IA para redes sociales. Gestiona las 4 marcas de Liminal Labs con un solo flujo.
 
-## Marcas incluidas
+## Marcas
 - **VEIL** — Astrología e introspección psicológica
-- **LIMINAL** — Arquitectura sonora inmersiva
+- **LIMINAL** — Arquitectura sonora inmersiva  
 - **TAVLO** — Gestión gastronómica
 - **ASTERON AI** — Soluciones IA para pymes
 
@@ -13,16 +13,29 @@ Generador de contenido IA para redes sociales. Creado para gestionar las 4 marca
 - Preview visual en canvas (1:1 y 9:16)
 - Integración con Canva para diseño final con fotos
 - Descarga PNG directa
-- Tono y voz personalizada por marca
+- Voz y tono personalizada por marca
 
 ## Stack
-- HTML / CSS / JS puro (sin dependencias)
-- Anthropic Claude API para generación de contenido
+- Node.js + Express (proxy server)
+- Vanilla HTML/CSS/JS (frontend en `/public`)
+- Anthropic Claude API
 - Canvas API para preview visual
 - Canva MCP para integración de diseño
 
-## Uso
-Abrí `index.html` en un browser o deployá en cualquier hosting estático.
+## Setup en Render
+1. Crear **Web Service** apuntando a este repo
+2. Build command: `npm install`
+3. Start command: `npm start`
+4. Variable de entorno: `ANTHROPIC_API_KEY=sk-ant-...`
+
+## Estructura
+```
+content-studio/
+├── server.js        ← proxy Express (llama a Anthropic)
+├── package.json
+└── public/
+    └── index.html   ← app frontend
+```
 
 ---
 Built with Claude · Liminal Labs 2025
