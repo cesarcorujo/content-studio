@@ -11,12 +11,10 @@ app.post('/api/generate', async (req, res) => {
 
   try {
     const body = {
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 1024,
       messages: req.body.messages
     };
-
-    console.log('Sending to Anthropic:', JSON.stringify(body).substring(0, 200));
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -29,8 +27,7 @@ app.post('/api/generate', async (req, res) => {
     });
 
     const text = await response.text();
-    console.log('Anthropic status:', response.status);
-    console.log('Anthropic response:', text.substring(0, 400));
+    console.log('Status:', response.status, '| Body:', text.substring(0, 300));
 
     if (!response.ok) return res.status(response.status).json({ error: text });
     res.json(JSON.parse(text));
