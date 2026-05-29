@@ -18,19 +18,33 @@ app.post('/api/generate', async (req, res) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        model: 'claude-opus-4-5',
+        max_tokens: 1024,
         messages: req.body.messages
       })
     });
-    const data = await response.json();
-    res.json(data);
+
+    const text = await response.text();
+    console.log('Anthropic status:', response.status);
+    console.log('Anthropic response:', text.substring(0, 300));
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: text });
+    }
+
+    res.json(JSON.parse(text));
   } catch (e) {
+    console.error('Error:', e.message);
     res.status(500).json({ error: e.message });
   }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, key: process.env.ANTHROPIC_API_KEY ? 'set' : 'missing' });
 });
 
 app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Content Studio proxy running on ${PORT}`));
+app.listen(PORT, () => console.log(`Content Studio running on port ${PORT}`));
