@@ -5,17 +5,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/api/generate', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
+// Try models in order until one works
+const MODELS = [
+  'claude-sonnet-4-5',
+  'claude-3-7-sonnet-20250219',
+  'claude-3-5-sonnet-20241022',
+  'claude-3-5-sonnet-20240620',
+];
 
-  try {
-    const body = {
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 1024,
-      messages: req.body.messages
-    };
-
+async function callAnthropic(apiKey, messages) {
+  for (const model of MODELS) {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -23,13 +22,23 @@ app.post('/api/generate', async (req, res) => {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ model, max_tokens: 1024, messages })
     });
-
     const text = await response.text();
-    console.log('Status:', response.status, '| Body:', text.substring(0, 300));
+    console.log(`Model ${model} → status ${response.status}`);
+    if (response.status === 404) continue; // try next model
+    return { status: response.status, text };
+  }
+  return { status: 404, text: JSON.stringify({ error: 'No models available' }) };
+}
 
-    if (!response.ok) return res.status(response.status).json({ error: text });
+app.post('/api/generate', async (req, res) => {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
+  try {
+    const { status, text } = await callAnthropic(apiKey, req.body.messages);
+    console.log('Final response:', text.substring(0, 200));
+    if (status !== 200) return res.status(status).json({ error: text });
     res.json(JSON.parse(text));
   } catch (e) {
     console.error('Error:', e.message);
