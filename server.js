@@ -11,7 +11,7 @@ app.post('/api/generate', async (req, res) => {
 
   try {
     const body = {
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-3-haiku-20240307',
       max_tokens: 1024,
       messages: req.body.messages
     };
