@@ -420,11 +420,12 @@ function renderOutput(text){
 function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$')}
 
 function shortSub(text){
-  // First sentence only, max 90 chars, never cut mid-word
-  const first=text.split(/[.!?]/)[0].trim();
-  const src=first.length>20?first:text;
-  if(src.length<=90) return src;
-  const cut=src.substring(0,90);
+  // Try to get first short clause (up to . ! ? : or ,)
+  const match=text.match(/^.{20,70}?[.!?:,]/);
+  if(match) return match[0].trim();
+  // Fallback: cut at word boundary within 65 chars
+  if(text.length<=65) return text;
+  const cut=text.substring(0,65);
   return cut.substring(0,cut.lastIndexOf(' '))||cut;
 }
 
