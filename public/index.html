@@ -479,78 +479,79 @@ function renderCanvas(exportSize){
   ctx.fillStyle=br.color;ctx.fillRect(lineX,ty-28*S,lineW,1*S);
 
   // title — Cormorant Garant: large editorial serif
-  // Split: all words bold, last word bold italic (like the Mesa site)
+  // Last word renders in bold italic + brand color (like "dueños" in Mesa site)
   const fs=main.length<20?34*S:main.length<38?27*S:21*S;
   const mw=lay==='left'?W-44*S:W-24*S;
+  const lh=fs*1.15;
   const words=main.split(' ');
-  const accentWord=words.pop(); // last word goes italic
+  const accentWord=words.pop()||'';
   const mainPart=words.join(' ');
 
-  // wrap and draw the main part (bold)
-  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
-  const lh=fs*1.15;
-  let allLines=wrapText(ctx,mainPart,mw);
-
-  // measure if accent word fits on last line
-  const lastLine=allLines[allLines.length-1]||'';
-  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;
-  const lastLineW=ctx.measureText(lastLine+(lastLine?' ':'')).width;
+  // measure accent word width (italic)
   ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;
-  const accentW=ctx.measureText(accentWord).width;
-  const accentFitsOnLastLine=lastLineW+accentW<=mw;
+  const accentW=ctx.measureText(' '+accentWord).width;
 
-  // draw bold lines
-  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
-  if(accentFitsOnLastLine){
-    allLines.forEach((l,i)=>ctx.fillText(l,cx,ty+i*lh));
-  } else {
-    allLines.forEach((l,i)=>ctx.fillText(l,cx,ty+i*lh));
-  }
+  // wrap main part using bold font for measurements
+  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;
+  const mainLines=wrapText(ctx,mainPart,mw);
 
-  // draw italic accent word
-  ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
-  if(accentFitsOnLastLine && allLines.length>0){
-    // same line as last bold line
-    const boldPart=lastLine+(lastLine?' ':'');
+  // check if accent fits on last line
+  const lastLine=mainLines[mainLines.length-1]||'';
+  const lastLineW=ctx.measureText(lastLine).width;
+  const fits=lastLineW+accentW<=mw && mainLines.length>0;
+
+  // draw all bold lines except last (we handle last manually)
+  ctx.fillStyle=tc;
+  const drawUpTo=fits?mainLines.length-1:mainLines.length;
+  for(let i=0;i<drawUpTo;i++) ctx.fillText(mainLines[i],cx,ty+i*lh);
+
+  let totalTitleLines;
+  if(fits){
+    // last bold line + italic accent on same row, centered together
+    const boldText=lastLine;
     ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;
-    const boldW=ctx.measureText(boldPart).width;
-    const lineY=ty+(allLines.length-1)*lh;
+    const boldW=ctx.measureText(boldText).width;
+    ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;
+    const italicW=ctx.measureText(' '+accentWord).width;
+    const rowY=ty+(mainLines.length-1)*lh;
     if(lay==='left'){
-      ctx.fillText(boldPart,cx,lineY);
+      ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;ctx.textAlign='left';
+      ctx.fillText(boldText,cx,rowY);
       ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=br.color;
-      ctx.textAlign='left';ctx.fillText(accentWord,cx+boldW,lineY);ctx.textAlign=align;
+      ctx.fillText(' '+accentWord,cx+boldW,rowY);
+      ctx.textAlign=align;
     } else {
-      // centered: measure total width and offset
-      ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;
-      const accentMeasure=ctx.measureText(accentWord).width;
-      const totalW=boldW+accentMeasure;
-      ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
-      ctx.textAlign='left';ctx.fillText(boldPart,cx-totalW/2,lineY);
+      const totalW=boldW+italicW;
+      const startX=cx-totalW/2;
+      ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;ctx.textAlign='left';
+      ctx.fillText(boldText,startX,rowY);
       ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=br.color;
-      ctx.fillText(accentWord,cx-totalW/2+boldW,lineY);
+      ctx.fillText(' '+accentWord,startX+boldW,rowY);
       ctx.textAlign=align;
     }
+    totalTitleLines=mainLines.length;
   } else {
-    // accent word on its own new line, in brand color italic
+    // accent on its own new line
     ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=br.color;
-    ctx.fillText(accentWord,cx,ty+allLines.length*lh);
-    allLines=[...allLines,accentWord];
+    ctx.fillText(accentWord,cx,ty+mainLines.length*lh);
+    totalTitleLines=mainLines.length+1;
   }
 
-  const titleLines=accentFitsOnLastLine?allLines.length:allLines.length;
-
-  // subtext — Outfit light, no hard line limit, just space check
+  // subtext — set Outfit font BEFORE wrapText so measurements are correct
   if(sub){
-    const subY=ty+16*S+titleLines*lh;
-    const subFs=10.5*S;
-    ctx.font=`300 ${subFs}px 'Outfit',sans-serif`;ctx.fillStyle=mc;
-    const sl=wrapText(ctx,sub,mw-6*S);
-    const maxLines=Math.floor((H-subY-20*S)/(13*S));
-    const visibleLines=sl.slice(0,Math.max(2,maxLines));
-    visibleLines.forEach((l,i)=>ctx.fillText(l,cx,subY+i*13*S));
-    if(sl.length>visibleLines.length){
-      ctx.fillStyle=br.color+'88';
-      ctx.fillText('…',cx,subY+visibleLines.length*13*S);
+    const subFs=11*S;
+    const subLineH=15*S;
+    ctx.font=`300 ${subFs}px 'Outfit',sans-serif`;
+    const subY=ty+totalTitleLines*lh+18*S;
+    const sl=wrapText(ctx,sub,mw-4*S); // font already set correctly
+    const spaceLeft=H-subY-18*S;
+    const maxLines=Math.max(2,Math.floor(spaceLeft/subLineH));
+    const visible=sl.slice(0,maxLines);
+    ctx.fillStyle=mc;
+    visible.forEach((l,i)=>ctx.fillText(l,cx,subY+i*subLineH));
+    if(sl.length>visible.length){
+      ctx.fillStyle=br.color+'99';
+      ctx.fillText('…',cx,subY+visible.length*subLineH);
     }
   }
 
