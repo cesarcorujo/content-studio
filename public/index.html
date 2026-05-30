@@ -185,12 +185,20 @@ hr{height:1px;background:var(--border);border:none}
         </select>
       </div>
     </div>
-    <!-- BG image upload -->
+    <!-- BG image upload + AI generation -->
     <div class="bg-row">
-      <span class="bg-label">Foto de fondo</span>
-      <button class="bg-btn" onclick="document.getElementById('bgInput').click()">+ Subir imagen</button>
+      <span class="bg-label">Fondo</span>
+      <button class="bg-btn" onclick="document.getElementById('bgInput').click()">+ Subir</button>
       <input type="file" id="bgInput" class="bg-input" accept="image/*" onchange="loadBg(event)">
+      <button class="bg-btn" id="aiBgBtn" onclick="toggleAiPrompt()" style="color:var(--brand-c);border-color:var(--brand-c)">✦ IA</button>
       <span class="bg-clear" id="bgClear" onclick="clearBg()">✕ quitar</span>
+    </div>
+    <div id="aiPromptRow" style="display:none;flex-direction:column;gap:5px">
+      <input class="ei2" id="aiPromptInput" placeholder="Ej: nebulosa violeta abstracta, cosmos profundo..." style="font-size:10px">
+      <button class="gen-btn" id="aiBgGenBtn" onclick="generateBgImage()" style="padding:8px;font-size:11px;border-radius:7px">
+        <div class="spin" id="aiSpinner"></div>
+        <span id="aiBtnTxt">✦ Generar fondo con IA</span>
+      </button>
     </div>
     <div class="cn" id="carouselNav" style="display:none">
       <button class="nb" id="prevS" onclick="changeSlide(-1)">← Prev</button>
@@ -269,6 +277,51 @@ function loadBg(e){
 }
 
 function clearBg(){bgImage=null;document.getElementById('bgClear').style.display='none';document.getElementById('bgInput').value='';renderCanvas()}
+
+const brandImagePrompts={
+  veil:'deep cosmic nebula, violet and purple hues, stars, mystical atmosphere, dark background, ethereal, cinematic, 4k',
+  liminal:'minimal dark abstract waves, deep teal and black, calm, geometric, meditative, clean, cinematic',
+  tavlo:'fresh ingredients flat lay, rustic dark surface, herbs, vegetables, moody restaurant lighting, editorial food photography',
+  asteron:'abstract golden data network, dark background, glowing nodes, futuristic, minimal, technology'
+};
+
+function toggleAiPrompt(){
+  const row=document.getElementById('aiPromptRow');
+  const open=row.style.display==='flex';
+  row.style.display=open?'none':'flex';
+  if(!open){
+    const inp=document.getElementById('aiPromptInput');
+    if(!inp.value) inp.value=brandImagePrompts[cur]||'';
+  }
+}
+
+async function generateBgImage(){
+  const btn=document.getElementById('aiBgGenBtn');
+  const sp=document.getElementById('aiSpinner');
+  const bt=document.getElementById('aiBtnTxt');
+  const prompt=document.getElementById('aiPromptInput').value.trim();
+  if(!prompt) return;
+  btn.disabled=true;sp.style.display='block';bt.textContent='Generando...';
+  try{
+    const res=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Error generando imagen');
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      bgImage=img;
+      document.getElementById('bgClear').style.display='inline';
+      document.getElementById('aiPromptRow').style.display='none';
+      renderCanvas();
+    };
+    img.onerror=()=>{throw new Error('No se pudo cargar la imagen')};
+    img.src=data.url;
+  }catch(e){
+    alert('Error: '+e.message);
+  }finally{
+    btn.disabled=false;sp.style.display='none';bt.textContent='✦ Generar fondo con IA';
+  }
+}
 
 async function generate(){
   const btn=document.getElementById('genBtn'),sp=document.getElementById('spinner'),bt=document.getElementById('btnTxt');

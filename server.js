@@ -46,7 +46,37 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-app.get('/api/health', (req, res) => {
+app.post('/api/generate-image', async (req, res) => {
+  const apiKey = process.env.REPLICATE_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'Replicate API key not configured' });
+  try {
+    const { prompt } = req.body;
+    // Start prediction with Flux Schnell
+    const startRes = await fetch('https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: { prompt, num_outputs: 1, aspect_ratio: '1:1', output_format: 'webp', output_quality: 90 } })
+    });
+    const prediction = await startRes.json();
+    if (!startRes.ok) return res.status(500).json({ error: prediction.detail || 'Error starting prediction' });
+
+    // Poll until done (max 60s)
+    let result = prediction;
+    for (let i = 0; i < 30; i++) {
+      if (result.status === 'succeeded') return res.json({ url: result.output[0] });
+      if (result.status === 'failed') return res.status(500).json({ error: result.error || 'Generation failed' });
+      await new Promise(r => setTimeout(r, 2000));
+      const poll = await fetch(result.urls.get, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+      result = await poll.json();
+    }
+    res.status(504).json({ error: 'Timeout generating image' });
+  } catch (e) {
+    console.error('Image gen error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
   res.json({ ok: true, key: process.env.ANTHROPIC_API_KEY ? 'set' : 'missing' });
 });
 
