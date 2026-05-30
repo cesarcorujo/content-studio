@@ -76,7 +76,7 @@ app.post('/api/generate-image', async (req, res) => {
   }
 });
 
-
+app.get('/api/health', (req, res) => {
   res.json({ ok: true, key: process.env.ANTHROPIC_API_KEY ? 'set' : 'missing' });
 });
 
