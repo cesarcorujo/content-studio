@@ -547,13 +547,7 @@ function renderCanvas(exportSize){
 
   if(lay==='bottom'){ctx.fillStyle=br.color;ctx.fillRect(lay==='left'?22*S:W/2-24*S,ty-22*S,48*S,1.5*S)}
 
-  // brand label — spaced mono
-  ctx.font=`400 ${6.5*S}px 'Space Mono',monospace`;ctx.fillStyle=br.color;
-  ctx.letterSpacing=`${2.5*S}px`;
-  ctx.fillText(brands[cur].name.toUpperCase(),cx,ty-18*S);
-  ctx.letterSpacing='0px';
-
-  // thin accent line above brand
+  // accent line
   const lineW=36*S, lineX=lay==='left'?0:cx-lineW/2;
   ctx.fillStyle=br.color;ctx.fillRect(lineX,ty-28*S,lineW,1*S);
 
