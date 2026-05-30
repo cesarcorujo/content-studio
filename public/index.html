@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Content Studio — Liminal Labs</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -21,7 +21,7 @@
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
 header{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0}
-.logo{font-family:'Fraunces',serif;font-size:18px;letter-spacing:-.02em}
+.logo{font-family:'Cormorant Garant',serif;font-size:18px;letter-spacing:-.02em}
 .logo em{color:var(--muted);font-style:italic}
 .badge{font-family:'Space Mono',monospace;font-size:9px;padding:3px 8px;border-radius:20px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);letter-spacing:.06em}
 main{display:grid;grid-template-columns:230px 1fr 370px;height:calc(100vh - 53px);overflow:hidden}
@@ -34,7 +34,7 @@ aside{border-right:1px solid var(--border);padding:18px 12px;display:flex;flex-d
 .bd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .bm{font-size:10px;color:var(--muted);font-weight:400;margin-top:1px}
 .center{overflow-y:auto;padding:24px 22px;display:flex;flex-direction:column;gap:18px;border-right:1px solid var(--border)}
-.bt{font-family:'Fraunces',serif;font-size:26px;letter-spacing:-.02em;line-height:1.1}
+.bt{font-family:'Cormorant Garant',serif;font-size:26px;letter-spacing:-.02em;line-height:1.1}
 .bs{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .ctrl{display:flex;flex-direction:column;gap:4px}
@@ -67,7 +67,7 @@ hr{height:1px;background:var(--border);border:none}
 .idea-list{display:flex;flex-direction:column;gap:7px}
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
 .ei{font-size:32px;opacity:.18;margin-bottom:10px}
-.et{font-family:'Fraunces',serif;font-size:18px;color:var(--text);opacity:.4;margin-bottom:5px}
+.et{font-family:'Cormorant Garant',serif;font-size:18px;color:var(--text);opacity:.4;margin-bottom:5px}
 .es{font-size:11px}
 /* VISUAL PANEL */
 .vp{overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:14px}
@@ -268,11 +268,12 @@ async function generate(){
   const btn=document.getElementById('genBtn'),sp=document.getElementById('spinner'),bt=document.getElementById('btnTxt');
   const br=brands[cur],net=document.getElementById('network').value,tone=document.getElementById('tone').value,topic=document.getElementById('topic').value.trim();
   const tones={natural:'Tono natural de la marca.',inspiracional:'Inspiracional y motivador.',educativo:'Educativo con valor real.',directo:'Directo con CTA fuerte.',storytelling:'Storytelling relatable.'};
+  const lang='IMPORTANTE: Respondé siempre en español rioplatense. Nunca uses inglés.';
   let prompt='';
-  if(tab==='caption') prompt=`${br.persona}\n\nGenerá UN caption completo para ${net}. ${tones[tone]} ${topic?'Tema: '+topic:'Elegí tema relevante.'}\nIncluí 12 hashtags relevantes al final.\nSolo el contenido listo para usar.`;
-  else if(tab==='ideas') prompt=`${br.persona}\n\nGenerá exactamente 5 ideas de posts para ${net}. ${tones[tone]} ${topic?'Tema base: '+topic:''}\nPor cada idea:\nTÍTULO: [máx 8 palabras]\nDESCRIPCIÓN: [2-3 frases]\n---`;
-  else if(tab==='carousel') prompt=`${br.persona}\n\nCreá un carrusel de 5 slides para ${net}. ${tones[tone]} ${topic?'Tema: '+topic:'Elegí tema relevante.'}\nFormato:\nSLIDE [N]:\nTÍTULO: [frase impactante máx 8 palabras]\nSUBTEXTO: [1-2 frases]\n---\nAl final: HASHTAGS: [12 hashtags]\nSolo el contenido.`;
-  else prompt=`${br.persona}\n\nGenerá 3 grupos de hashtags para ${net}:\nGRUPO 1 MASIVOS: [6 hashtags]\nGRUPO 2 NICHO: [8 hashtags]\nGRUPO 3 MARCA ${br.name}: [5 hashtags]\nOrganizados y listos para copiar.`;
+  if(tab==='caption') prompt=`${br.persona}\n\n${lang}\n\nGenerá UN caption completo para ${net}. ${tones[tone]} ${topic?'Tema: '+topic:'Elegí tema relevante.'}\nIncluí 12 hashtags relevantes al final.\nSolo el contenido listo para usar.`;
+  else if(tab==='ideas') prompt=`${br.persona}\n\n${lang}\n\nGenerá exactamente 5 ideas de posts para ${net}. ${tones[tone]} ${topic?'Tema base: '+topic:''}\nPor cada idea usá este formato exacto:\nTÍTULO: [gancho máx 8 palabras]\nDESCRIPCIÓN: [qué trata el post, 1-2 frases]\nCOPY: [caption completo listo para publicar, 3-5 frases con voz de marca + llamado a la acción]\n---`;
+  else if(tab==='carousel') prompt=`${br.persona}\n\n${lang}\n\nCreá un carrusel de 5 slides para ${net}. ${tones[tone]} ${topic?'Tema: '+topic:'Elegí tema relevante.'}\nPor cada slide usá este formato exacto:\nSLIDE [N]:\nTÍTULO: [frase impactante máx 8 palabras]\nSUBTEXTO: [desarrollo del slide, 2-3 frases]\nCOPY: [texto completo de este slide listo para usar]\n---\nAl final: HASHTAGS: [12 hashtags]\nSolo el contenido.`;
+  else prompt=`${br.persona}\n\n${lang}\n\nGenerá 3 grupos de hashtags para ${net}:\nGRUPO 1 MASIVOS: [6 hashtags]\nGRUPO 2 NICHO: [8 hashtags]\nGRUPO 3 MARCA ${br.name}: [5 hashtags]\nOrganizados y listos para copiar.`;
 
   btn.disabled=true;sp.style.display='block';bt.textContent='Generando...';
   try{
@@ -308,28 +309,35 @@ function renderOutput(text){
     const parts=text.split('---').filter(s=>s.trim());
     out.innerHTML=`<div class="idea-list">${parts.map((p,i)=>{
       const titulo=(p.match(/TÍTULO:\s*(.+)/)||[])[1]?.trim()||`Idea ${i+1}`;
-      const desc=(p.match(/DESCRIPCIÓN:\s*([\s\S]+?)(?=---|$)/)||[])[1]?.trim()||p.trim();
+      const desc=(p.match(/DESCRIPCIÓN:\s*([\s\S]+?)(?=COPY:|---|$)/)||[])[1]?.trim()||'';
+      const copy=(p.match(/COPY:\s*([\s\S]+?)(?=---|$)/)||[])[1]?.trim()||'';
       return `<div class="out-card" style="padding:12px 14px">
-        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--brand-c);margin-bottom:3px">IDEA ${String(i+1).padStart(2,'0')}</div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:3px">${titulo}</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px">${desc}</div>
-        <button class="ob hi" onclick="ideaVisual(\`${esc(titulo)}\`,\`${esc(desc.substring(0,80))}\`)">→ Visual</button>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--brand-c);margin-bottom:5px">IDEA ${String(i+1).padStart(2,'0')}</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">${titulo}</div>
+        ${desc?`<div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px">${desc}</div>`:''}
+        ${copy?`<div style="font-size:11px;line-height:1.7;margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--brand-c)">${copy}</div>`:''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${copy?`<button class="ob hi" onclick="cp(this,\`${esc(copy)}\`)">Copiar copy</button>`:''}
+          <button class="ob hi" onclick="ideaVisual(\`${esc(titulo)}\`,\`${esc((copy||desc).substring(0,100))}\`)">→ Visual</button>
+        </div>
       </div>`;
     }).join('')}</div>`;
   }else if(tab==='carousel'){
     const blocks=text.split('---').filter(s=>s.trim()&&/SLIDE/i.test(s));
     slides=blocks.map((b,i)=>({
       titulo:(b.match(/TÍTULO:\s*(.+)/)||[])[1]?.trim()||`Slide ${i+1}`,
-      sub:(b.match(/SUBTEXTO:\s*([\s\S]+?)(?=---|HASHTAGS|$)/)||[])[1]?.trim()||''
+      sub:(b.match(/SUBTEXTO:\s*([\s\S]+?)(?=COPY:|---|HASHTAGS|$)/)||[])[1]?.trim()||'',
+      copy:(b.match(/COPY:\s*([\s\S]+?)(?=---|HASHTAGS|$)/)||[])[1]?.trim()||''
     })).filter(s=>s.titulo);
-    if(!slides.length)slides=[{titulo:'Slide 1',sub:text.substring(0,100)}];
+    if(!slides.length)slides=[{titulo:'Slide 1',sub:text.substring(0,100),copy:''}];
     curSlide=0;
     out.innerHTML=`<div class="out-card">
       <div class="oh"><div class="on"><div class="nd"></div>Carrusel · ${slides.length} slides</div></div>
-      <div class="idea-list">${slides.map((s,i)=>`<div style="border-left:2px solid var(--brand-c);padding:8px 10px;background:var(--surface2);border-radius:0 8px 8px 0;cursor:pointer;margin-bottom:3px" onclick="jumpSlide(${i})">
-        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--brand-c);margin-bottom:2px">SLIDE ${i+1}</div>
-        <div style="font-size:11px;font-weight:600">${s.titulo}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:1px">${s.sub.substring(0,55)}${s.sub.length>55?'...':''}</div>
+      <div class="idea-list">${slides.map((s,i)=>`<div style="border-left:2px solid var(--brand-c);padding:10px 12px;background:var(--surface2);border-radius:0 8px 8px 0;cursor:pointer;margin-bottom:4px" onclick="jumpSlide(${i})">
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--brand-c);margin-bottom:3px">SLIDE ${i+1}</div>
+        <div style="font-size:11px;font-weight:700;margin-bottom:3px">${s.titulo}</div>
+        ${s.copy?`<div style="font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.6">${s.copy.substring(0,120)}${s.copy.length>120?'...':''}</div>`:''}
+        ${s.copy?`<button class="ob hi" style="font-size:8px" onclick="event.stopPropagation();cp(this,\`${esc(s.copy)}\`)">Copiar copy</button>`:''}
       </div>`).join('')}</div>
     </div>`;
     renderCarousel();
