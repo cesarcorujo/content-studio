@@ -468,26 +468,90 @@ function renderCanvas(exportSize){
 
   if(lay==='bottom'){ctx.fillStyle=br.color;ctx.fillRect(lay==='left'?22*S:W/2-24*S,ty-22*S,48*S,1.5*S)}
 
-  // brand name
-  ctx.font=`400 ${7*S}px 'Space Mono',monospace`;ctx.fillStyle=br.color;
-  ctx.letterSpacing=`${1.4*S}px`;
-  ctx.fillText(brands[cur].name.toUpperCase(),cx,ty-16*S);
+  // brand label — spaced mono
+  ctx.font=`400 ${6.5*S}px 'Space Mono',monospace`;ctx.fillStyle=br.color;
+  ctx.letterSpacing=`${2.5*S}px`;
+  ctx.fillText(brands[cur].name.toUpperCase(),cx,ty-18*S);
   ctx.letterSpacing='0px';
 
-  // main text — Bebas Neue: large, condensed, impactful
-  const fs=main.length<22?28*S:main.length<40?22*S:17*S;
-  ctx.font=`400 ${fs}px 'Bebas Neue',sans-serif`;ctx.fillStyle=tc;
-  const mw=lay==='left'?W-44*S:W-28*S;
-  const lh=fs*1.1;
-  const lines=wrapText(ctx,main.toUpperCase(),mw);
-  lines.forEach((l,i)=>ctx.fillText(l,cx,ty+4*S+i*lh));
+  // thin accent line above brand
+  const lineW=36*S, lineX=lay==='left'?0:cx-lineW/2;
+  ctx.fillStyle=br.color;ctx.fillRect(lineX,ty-28*S,lineW,1*S);
 
-  // subtext — Outfit: clean, modern
+  // title — Cormorant Garant: large editorial serif
+  // Split: all words bold, last word bold italic (like the Mesa site)
+  const fs=main.length<20?34*S:main.length<38?27*S:21*S;
+  const mw=lay==='left'?W-44*S:W-24*S;
+  const words=main.split(' ');
+  const accentWord=words.pop(); // last word goes italic
+  const mainPart=words.join(' ');
+
+  // wrap and draw the main part (bold)
+  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
+  const lh=fs*1.15;
+  let allLines=wrapText(ctx,mainPart,mw);
+
+  // measure if accent word fits on last line
+  const lastLine=allLines[allLines.length-1]||'';
+  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;
+  const lastLineW=ctx.measureText(lastLine+(lastLine?' ':'')).width;
+  ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;
+  const accentW=ctx.measureText(accentWord).width;
+  const accentFitsOnLastLine=lastLineW+accentW<=mw;
+
+  // draw bold lines
+  ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
+  if(accentFitsOnLastLine){
+    allLines.forEach((l,i)=>ctx.fillText(l,cx,ty+i*lh));
+  } else {
+    allLines.forEach((l,i)=>ctx.fillText(l,cx,ty+i*lh));
+  }
+
+  // draw italic accent word
+  ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
+  if(accentFitsOnLastLine && allLines.length>0){
+    // same line as last bold line
+    const boldPart=lastLine+(lastLine?' ':'');
+    ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;
+    const boldW=ctx.measureText(boldPart).width;
+    const lineY=ty+(allLines.length-1)*lh;
+    if(lay==='left'){
+      ctx.fillText(boldPart,cx,lineY);
+      ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=br.color;
+      ctx.textAlign='left';ctx.fillText(accentWord,cx+boldW,lineY);ctx.textAlign=align;
+    } else {
+      // centered: measure total width and offset
+      ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;
+      const accentMeasure=ctx.measureText(accentWord).width;
+      const totalW=boldW+accentMeasure;
+      ctx.font=`700 ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=tc;
+      ctx.textAlign='left';ctx.fillText(boldPart,cx-totalW/2,lineY);
+      ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=br.color;
+      ctx.fillText(accentWord,cx-totalW/2+boldW,lineY);
+      ctx.textAlign=align;
+    }
+  } else {
+    // accent word on its own new line, in brand color italic
+    ctx.font=`700 italic ${fs}px 'Cormorant Garant',serif`;ctx.fillStyle=br.color;
+    ctx.fillText(accentWord,cx,ty+allLines.length*lh);
+    allLines=[...allLines,accentWord];
+  }
+
+  const titleLines=accentFitsOnLastLine?allLines.length:allLines.length;
+
+  // subtext — Outfit light, no hard line limit, just space check
   if(sub){
-    const sy=ty+8*S+lines.length*lh;
-    ctx.font=`300 ${10.5*S}px 'Outfit',sans-serif`;ctx.fillStyle=mc;
-    const sl=wrapText(ctx,sub,mw-8*S);
-    sl.slice(0,3).forEach((l,i)=>ctx.fillText(l,cx,sy+i*14*S));
+    const subY=ty+16*S+titleLines*lh;
+    const subFs=10.5*S;
+    ctx.font=`300 ${subFs}px 'Outfit',sans-serif`;ctx.fillStyle=mc;
+    const sl=wrapText(ctx,sub,mw-6*S);
+    const maxLines=Math.floor((H-subY-20*S)/(13*S));
+    const visibleLines=sl.slice(0,Math.max(2,maxLines));
+    visibleLines.forEach((l,i)=>ctx.fillText(l,cx,subY+i*13*S));
+    if(sl.length>visibleLines.length){
+      ctx.fillStyle=br.color+'88';
+      ctx.fillText('…',cx,subY+visibleLines.length*13*S);
+    }
   }
 
   // slide counter
