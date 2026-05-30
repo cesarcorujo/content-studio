@@ -419,18 +419,34 @@ function renderOutput(text){
 
 function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$')}
 
+function shortSub(text){
+  // First sentence only, max 90 chars, never cut mid-word
+  const first=text.split(/[.!?]/)[0].trim();
+  const src=first.length>20?first:text;
+  if(src.length<=90) return src;
+  const cut=src.substring(0,90);
+  return cut.substring(0,cut.lastIndexOf(' '))||cut;
+}
+
+function shortTitle(text){
+  // Cut at word boundary within 55 chars
+  if(text.length<=55) return text;
+  const cut=text.substring(0,55);
+  return cut.substring(0,cut.lastIndexOf(' '))||cut;
+}
+
 function toVisual(){
   const lines=caption.split('\n').filter(l=>l.trim());
-  document.getElementById('editMain').value=lines[0]?.substring(0,60)||'';
-  document.getElementById('editSub').value=lines.slice(1).join(' ').substring(0,300)||'';
+  document.getElementById('editMain').value=shortTitle(lines[0]||'');
+  document.getElementById('editSub').value=shortSub(lines.slice(1).join(' '))||'';
   document.getElementById('slideEditor').style.display='flex';
   document.getElementById('carouselNav').style.display='none';
   slides=[];renderCanvas();
 }
 
 function ideaVisual(t,d){
-  document.getElementById('editMain').value=t;
-  document.getElementById('editSub').value=d;
+  document.getElementById('editMain').value=shortTitle(t);
+  document.getElementById('editSub').value=shortSub(d);
   document.getElementById('slideEditor').style.display='flex';
   document.getElementById('carouselNav').style.display='none';
   slides=[];renderCanvas();
