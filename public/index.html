@@ -636,11 +636,7 @@ function renderCanvas(exportSize){
   // slide counter
   if(slides.length>1){ctx.font=`400 ${8*S}px 'Space Mono',monospace`;ctx.fillStyle=br.color;ctx.textAlign='right';ctx.fillText(`${curSlide+1}/${slides.length}`,W-12*S,H-10*S);ctx.textAlign=align}
 
-  // brand watermark
-  ctx.font=`400 ${7*S}px 'Space Mono',monospace`;
-  ctx.fillStyle=dark?'rgba(255,255,255,0.15)':sty==='minimal'?'#bbb':'rgba(0,0,0,0.2)';
-  ctx.textAlign='center';
-  ctx.fillText(br.name.toLowerCase().replace(' ','')+'.app',W/2,H-8*S);
+  // brand watermark removed
 
   return c;
 }
