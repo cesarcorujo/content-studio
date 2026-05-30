@@ -314,7 +314,16 @@ async function generateBgImage(){
       document.getElementById('aiPromptRow').style.display='none';
       renderCanvas();
     };
-    img.onerror=()=>{throw new Error('No se pudo cargar la imagen')};
+    img.onerror=()=>{
+      // Retry once after 3s (Pollinations may need a moment)
+      setTimeout(()=>{
+        const img2=new Image();
+        img2.crossOrigin='anonymous';
+        img2.onload=()=>{bgImage=img2;document.getElementById('bgClear').style.display='inline';document.getElementById('aiPromptRow').style.display='none';renderCanvas()};
+        img2.onerror=()=>alert('No se pudo cargar la imagen generada. Intentá de nuevo.');
+        img2.src=data.url+'&t='+Date.now();
+      },3000);
+    };
     img.src=data.url;
   }catch(e){
     alert('Error: '+e.message);
