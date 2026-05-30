@@ -386,7 +386,7 @@ function renderOutput(text){
         ${copy?`<div style="font-size:11px;line-height:1.7;margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--brand-c)">${copy}</div>`:''}
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${copy?`<button class="ob hi" onclick="cp(this,\`${esc(copy)}\`)">Copiar copy</button>`:''}
-          <button class="ob hi" onclick="ideaVisual(\`${esc(titulo)}\`,\`${esc((copy||desc).substring(0,100))}\`)">→ Visual</button>
+          <button class="ob hi" onclick="ideaVisual(\`${esc(titulo)}\`,\`${esc((copy||desc).substring(0,300))}\`)">→ Visual</button>
         </div>
       </div>`;
     }).join('')}</div>`;
@@ -397,7 +397,7 @@ function renderOutput(text){
       sub:(b.match(/SUBTEXTO:\s*([\s\S]+?)(?=COPY:|---|HASHTAGS|$)/)||[])[1]?.trim()||'',
       copy:(b.match(/COPY:\s*([\s\S]+?)(?=---|HASHTAGS|$)/)||[])[1]?.trim()||''
     })).filter(s=>s.titulo);
-    if(!slides.length)slides=[{titulo:'Slide 1',sub:text.substring(0,100),copy:''}];
+    if(!slides.length)slides=[{titulo:'Slide 1',sub:text.substring(0,300),copy:''}];
     curSlide=0;
     out.innerHTML=`<div class="out-card">
       <div class="oh"><div class="on"><div class="nd"></div>Carrusel · ${slides.length} slides</div></div>
@@ -422,7 +422,7 @@ function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(
 function toVisual(){
   const lines=caption.split('\n').filter(l=>l.trim());
   document.getElementById('editMain').value=lines[0]?.substring(0,60)||'';
-  document.getElementById('editSub').value=lines.slice(1).join(' ').substring(0,100)||'';
+  document.getElementById('editSub').value=lines.slice(1).join(' ').substring(0,300)||'';
   document.getElementById('slideEditor').style.display='flex';
   document.getElementById('carouselNav').style.display='none';
   slides=[];renderCanvas();
