@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Content Studio — Liminal Labs</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -215,6 +215,12 @@ hr{height:1px;background:var(--border);border:none}
 </main>
 
 <script>
+// Preload canvas fonts so they're available before first render
+Promise.all([
+  new FontFace('Bebas Neue','url(https://fonts.gstatic.com/s/bebasneuepro/v6/CNz9x_HTkuSEd2EbVz8HtpmC5sPU.woff2)').load().catch(()=>{}),
+  document.fonts.ready
+]).then(()=>{if(typeof renderCanvas==='function')renderCanvas()});
+
 const brands={
   veil:{name:'VEIL',color:'#c4b5fd',bg:'#0d0a1a',dim:'rgba(196,181,253,0.12)',desc:'Astrología personalizada e introspección psicológica.',
     persona:`VEIL es una app de astrología e introspección psicológica de Liminal Labs. Tono: místico, profundo, poético, evocador. Lenguaje español rioplatense sofisticado. Audiencia: autoconocimiento, espiritualidad moderna. URL: veil-decision-decoder.lovable.app`},
@@ -463,22 +469,24 @@ function renderCanvas(exportSize){
   if(lay==='bottom'){ctx.fillStyle=br.color;ctx.fillRect(lay==='left'?22*S:W/2-24*S,ty-22*S,48*S,1.5*S)}
 
   // brand name
-  ctx.font=`500 ${8*S}px 'Space Mono',monospace`;ctx.fillStyle=br.color;
-  ctx.fillText(brands[cur].name.toUpperCase(),cx,ty-14*S);
+  ctx.font=`400 ${7*S}px 'Space Mono',monospace`;ctx.fillStyle=br.color;
+  ctx.letterSpacing=`${1.4*S}px`;
+  ctx.fillText(brands[cur].name.toUpperCase(),cx,ty-16*S);
+  ctx.letterSpacing='0px';
 
-  // main text
-  const fs=main.length<28?20*S:main.length<45?16*S:12*S;
-  ctx.font=`700 ${fs}px 'Plus Jakarta Sans',sans-serif`;ctx.fillStyle=tc;
-  const mw=lay==='left'?W-44*S:W-32*S;
-  const lh=fs*1.28;
-  const lines=wrapText(ctx,main,mw);
+  // main text — Bebas Neue: large, condensed, impactful
+  const fs=main.length<22?28*S:main.length<40?22*S:17*S;
+  ctx.font=`400 ${fs}px 'Bebas Neue',sans-serif`;ctx.fillStyle=tc;
+  const mw=lay==='left'?W-44*S:W-28*S;
+  const lh=fs*1.1;
+  const lines=wrapText(ctx,main.toUpperCase(),mw);
   lines.forEach((l,i)=>ctx.fillText(l,cx,ty+4*S+i*lh));
 
-  // subtext
+  // subtext — Outfit: clean, modern
   if(sub){
     const sy=ty+8*S+lines.length*lh;
-    ctx.font=`400 ${11*S}px 'Plus Jakarta Sans',sans-serif`;ctx.fillStyle=mc;
-    const sl=wrapText(ctx,sub,mw-10*S);
+    ctx.font=`300 ${10.5*S}px 'Outfit',sans-serif`;ctx.fillStyle=mc;
+    const sl=wrapText(ctx,sub,mw-8*S);
     sl.slice(0,3).forEach((l,i)=>ctx.fillText(l,cx,sy+i*14*S));
   }
 
