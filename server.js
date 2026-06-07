@@ -43,7 +43,7 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Genera imagen con DALL-E 3 y la retorna como base64 (sin CORS issues)
+// DALL-E 3: devuelve URL, luego la descargamos y retornamos base64 para evitar CORS en canvas
 app.post('/api/generate-image', async (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY;
   if (!openaiKey) return res.status(500).json({ error: 'OpenAI API key no configurada' });
@@ -51,6 +51,7 @@ app.post('/api/generate-image', async (req, res) => {
   try {
     const { prompt } = req.body;
 
+    // Paso 1: generar imagen con DALL-E 3
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -62,16 +63,29 @@ app.post('/api/generate-image', async (req, res) => {
         prompt: prompt,
         n: 1,
         size: '1024x1024',
-        response_format: 'b64_json',
         quality: 'standard'
       })
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    console.log('OpenAI response:', raw.substring(0, 300));
+
+    let data;
+    try { data = JSON.parse(raw); } catch(e) { throw new Error('OpenAI devolvió respuesta inválida: ' + raw.substring(0, 100)); }
     if (!response.ok) throw new Error(data.error?.message || 'Error en DALL-E 3');
 
-    const b64 = data.data[0].b64_json;
-    res.json({ dataUrl: `data:image/png;base64,${b64}` });
+    const imageUrl = data.data[0].url;
+
+    // Paso 2: descargar la imagen en el servidor y convertir a base64
+    // Así evitamos problemas de CORS al dibujarla en el canvas del browser
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) throw new Error('No se pudo descargar la imagen generada');
+
+    const arrayBuffer = await imgRes.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    const contentType = imgRes.headers.get('content-type') || 'image/png';
+
+    res.json({ dataUrl: `data:${contentType};base64,${base64}` });
 
   } catch (e) {
     console.error('Image gen error:', e.message);
