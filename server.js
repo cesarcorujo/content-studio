@@ -43,7 +43,7 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// DALL-E 3: devuelve URL, luego la descargamos y retornamos base64 para evitar CORS en canvas
+// gpt-image-1 devuelve b64_json directamente
 app.post('/api/generate-image', async (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY;
   if (!openaiKey) return res.status(500).json({ error: 'OpenAI API key no configurada' });
@@ -51,7 +51,6 @@ app.post('/api/generate-image', async (req, res) => {
   try {
     const { prompt } = req.body;
 
-    // Paso 1: generar imagen con DALL-E 3
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -63,29 +62,30 @@ app.post('/api/generate-image', async (req, res) => {
         prompt: prompt,
         n: 1,
         size: '1024x1024',
-        quality: 'auto'
+        quality: 'auto',
+        output_format: 'png'
       })
     });
 
     const raw = await response.text();
-    console.log('OpenAI response:', raw.substring(0, 300));
+    console.log('OpenAI raw:', raw.substring(0, 400));
 
     let data;
-    try { data = JSON.parse(raw); } catch(e) { throw new Error('OpenAI devolvió respuesta inválida: ' + raw.substring(0, 100)); }
-    if (!response.ok) throw new Error(data.error?.message || 'Error en DALL-E 3');
+    try { data = JSON.parse(raw); } catch(e) { throw new Error('Respuesta inválida de OpenAI: ' + raw.substring(0, 150)); }
+    if (!response.ok) throw new Error(data.error?.message || 'Error en gpt-image-1');
 
-    const imageUrl = data.data[0].url;
-
-    // Paso 2: descargar la imagen en el servidor y convertir a base64
-    // Así evitamos problemas de CORS al dibujarla en el canvas del browser
-    const imgRes = await fetch(imageUrl);
-    if (!imgRes.ok) throw new Error('No se pudo descargar la imagen generada');
-
-    const arrayBuffer = await imgRes.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString('base64');
-    const contentType = imgRes.headers.get('content-type') || 'image/png';
-
-    res.json({ dataUrl: `data:${contentType};base64,${base64}` });
+    // gpt-image-1 devuelve b64_json, no URL
+    const item = data.data[0];
+    if (item.b64_json) {
+      res.json({ dataUrl: `data:image/png;base64,${item.b64_json}` });
+    } else if (item.url) {
+      // fallback: descargar y convertir a base64
+      const imgRes = await fetch(item.url);
+      const buf = Buffer.from(await imgRes.arrayBuffer());
+      res.json({ dataUrl: `data:image/png;base64,${buf.toString('base64')}` });
+    } else {
+      throw new Error('OpenAI no devolvió imagen: ' + JSON.stringify(item));
+    }
 
   } catch (e) {
     console.error('Image gen error:', e.message);
