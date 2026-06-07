@@ -52,10 +52,21 @@ app.post('/api/generate-image', async (req, res) => {
     // Pollinations.ai — free, no API key, Flux-powered
     const encoded = encodeURIComponent(prompt);
     const seed = Math.floor(Math.random() * 999999);
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&seed=${seed}&nologo=true&enhance=true`;
-    // Verify the image is reachable
-    const check = await fetch(url, { method: 'HEAD' });
-    if (!check.ok) throw new Error('No se pudo generar la imagen');
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&seed=${seed}&nologo=true&enhance=true&model=flux`;
+
+    // Pollinations no soporta HEAD — usamos GET con timeout de 25s para esperar la generación
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
+    try {
+      const check = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!check.ok) throw new Error(`Pollinations respondió con status ${check.status}`);
+    } catch (fetchErr) {
+      clearTimeout(timeout);
+      if (fetchErr.name === 'AbortError') throw new Error('Timeout: la imagen tardó demasiado en generarse');
+      throw fetchErr;
+    }
+
     res.json({ url });
   } catch (e) {
     console.error('Image gen error:', e.message);
