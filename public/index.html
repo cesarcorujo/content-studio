@@ -301,30 +301,35 @@ async function generateBgImage(){
   const bt=document.getElementById('aiBtnTxt');
   const prompt=document.getElementById('aiPromptInput').value.trim();
   if(!prompt) return;
-  btn.disabled=true;sp.style.display='block';bt.textContent='Generando...';
+  btn.disabled=true;sp.style.display='block';bt.textContent='Generando imagen...';
   try{
-    const res=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Error generando imagen');
-    const img=new Image();
-    img.crossOrigin='anonymous';
-    img.onload=()=>{
-      bgImage=img;
-      document.getElementById('bgClear').style.display='inline';
-      document.getElementById('aiPromptRow').style.display='none';
-      renderCanvas();
-    };
-    img.onerror=()=>{
-      // Retry once after 3s (Pollinations may need a moment)
-      setTimeout(()=>{
-        const img2=new Image();
-        img2.crossOrigin='anonymous';
-        img2.onload=()=>{bgImage=img2;document.getElementById('bgClear').style.display='inline';document.getElementById('aiPromptRow').style.display='none';renderCanvas()};
-        img2.onerror=()=>alert('No se pudo cargar la imagen generada. Intentá de nuevo.');
-        img2.src=data.url+'&t='+Date.now();
-      },3000);
-    };
-    img.src=data.url;
+    // Directo desde el browser — Pollinations bloquea IPs de servidor pero permite browsers
+    const encoded=encodeURIComponent(prompt);
+    const seed=Math.floor(Math.random()*999999);
+    const url=`https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&seed=${seed}&nologo=true`;
+    await new Promise((resolve,reject)=>{
+      const img=new Image();
+      img.crossOrigin='anonymous';
+      img.onload=()=>{
+        bgImage=img;
+        document.getElementById('bgClear').style.display='inline';
+        document.getElementById('aiPromptRow').style.display='none';
+        renderCanvas();
+        resolve();
+      };
+      img.onerror=()=>{
+        // Retry once after 4s
+        bt.textContent='Reintentando...';
+        setTimeout(()=>{
+          const img2=new Image();
+          img2.crossOrigin='anonymous';
+          img2.onload=()=>{bgImage=img2;document.getElementById('bgClear').style.display='inline';document.getElementById('aiPromptRow').style.display='none';renderCanvas();resolve()};
+          img2.onerror=()=>reject(new Error('No se pudo cargar la imagen. Intentá con otro prompt.'));
+          img2.src=url+'&t='+Date.now();
+        },4000);
+      };
+      img.src=url;
+    });
   }catch(e){
     alert('Error: '+e.message);
   }finally{

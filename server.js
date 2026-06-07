@@ -46,33 +46,8 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-app.post('/api/generate-image', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    // Pollinations.ai — free, no API key, Flux-powered
-    const encoded = encodeURIComponent(prompt);
-    const seed = Math.floor(Math.random() * 999999);
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&seed=${seed}&nologo=true&enhance=true&model=flux`;
-
-    // Pollinations no soporta HEAD — usamos GET con timeout de 25s para esperar la generación
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
-    try {
-      const check = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
-      if (!check.ok) throw new Error(`Pollinations respondió con status ${check.status}`);
-    } catch (fetchErr) {
-      clearTimeout(timeout);
-      if (fetchErr.name === 'AbortError') throw new Error('Timeout: la imagen tardó demasiado en generarse');
-      throw fetchErr;
-    }
-
-    res.json({ url });
-  } catch (e) {
-    console.error('Image gen error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
+// /api/generate-image eliminado — Pollinations bloquea IPs de servidor (402/403)
+// La generación de imagen ahora se hace directo desde el browser en el frontend
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, key: process.env.ANTHROPIC_API_KEY ? 'set' : 'missing' });
