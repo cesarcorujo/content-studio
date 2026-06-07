@@ -59,7 +59,7 @@ app.post('/api/generate-image', async (req, res) => {
         'Authorization': `Bearer ${openaiKey}`
       },
       body: JSON.stringify({
-        model: 'dall-e-2',
+        model: 'gpt-image-1',
         prompt: prompt,
         n: 1,
         size: '1024x1024',
